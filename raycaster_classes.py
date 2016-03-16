@@ -3,7 +3,7 @@ class Vector():
         self.x = x
         self.y = y
         self.z = z
-    def norm(self):
+    def l2_norm(self):
         """
         return the l2 norm of the vector.
         """
@@ -12,7 +12,7 @@ class Vector():
         """
         return the unit vector corresponding to the vector.
         """
-        magnitude = self.norm()
+        magnitude = self.l2_norm()
         return Vector(self.x/magnitude, self.y/magnitude, self.z/magnitude)
     def scalar_mult(self,s):
         """
@@ -41,15 +41,25 @@ class Color():
 class Ray():
     def __init__(self, origin, direction):
         # where o,d are vectors
-        self.o = origin
-        self.d = direction
+        self.origin = origin
+        self.direction = direction
 
 class Sphere():
     def __init__(self, center, radius, color):
         # c is a vector, r is a float, s is a color
-        self.c = center
-        self.r = radius
-        self.s = color
+        self.center = center
+        self.radius = radius
+        self.color = color
+
+class Hit():
+    """
+    A hit object is created if a ray strikes the camera,
+    otherwise Null. Note: surface_normal is a ray.
+    """
+    def __init__(self, distance, surface_color, surface_normal):
+        self.distance = distance
+        self.color = surface_color
+        self.normal = surface_normal
 
 def vector_add(v1,v2):
     """
