@@ -1,5 +1,5 @@
 #!/bin/bash
-python raytracer.py
+python raycaster.py
 # open up the created file (using that it's the most recent)
 most_recent=$(ls -t | head -n1 | grep .png)
 if [ "$most_recent" != "" ]

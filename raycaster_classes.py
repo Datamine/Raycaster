@@ -52,6 +52,11 @@ class Color():
         g = max(0, min(255, self.g * x))
         b = max(0, min(255, self.b * x))
         return Color(r,g,b)
+    def print_c(self):
+        """
+        print the color. for debugging.
+        """
+        print (self.r, self.g, self.b)
 
 class Ray():
     """
@@ -114,9 +119,13 @@ def color_modulate(c1, c2):
     """
     pointwise multiplication of two colors.
     """
-    r_component = int(c1.r * c2.r / 255.0)
-    g_component = int(c1.g * c2.g / 255.0)
-    b_component = int(c1.b * c2.b / 255.0)
+    r_component = (c1.r / 255.0) * (c2.r/255.0)
+    g_component = (c1.g / 255.0) * (c2.g/255.0)
+    b_component = (c1.b / 255.0) * (c2.b/255.0)
+
+    r_component = int(r_component * 255)
+    g_component = int(g_component * 255)
+    b_component = int(b_component * 255)
     return Color(r_component, g_component, b_component)
 
 def color_add(c1,c2):
