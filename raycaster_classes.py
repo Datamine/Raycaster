@@ -34,23 +34,23 @@ class Color():
     """
     def __init__(self,r,g,b):
         """
-        where r,g,b are integers in [0,255]
+        where r,g,b are integers in [0,1]
         """
         self.r = r
         self.g = g
         self.b = b
-    def to_tuple(self):
+    def to_color_tuple(self):
         """
         return a tuple so it can be parsed by the Image library.
         """
-        return (self.r, self.g, self.b)
+        return (int(self.r * 255), int(self.g * 255), int(self.b * 255))
     def scale(self, x):
         """
-        scale a color by some scalar, within [0,255] bounds.
+        scale a color by some scalar, within [0,1] bounds.
         """
-        r = max(0, min(255, self.r * x))
-        g = max(0, min(255, self.g * x))
-        b = max(0, min(255, self.b * x))
+        r = max(0, min(1, self.r * x))
+        g = max(0, min(1, self.g * x))
+        b = max(0, min(1, self.b * x))
         return Color(r,g,b)
     def print_c(self):
         """
@@ -70,7 +70,7 @@ class Ray():
 
 class Light():
     """
-    direction and color of ambient light.
+    direction and color of scene light.
     """
     def __init__(self, direction, color):
         self.direction = direction
@@ -119,22 +119,18 @@ def color_modulate(c1, c2):
     """
     pointwise multiplication of two colors.
     """
-    r_component = (c1.r / 255.0) * (c2.r/255.0)
-    g_component = (c1.g / 255.0) * (c2.g/255.0)
-    b_component = (c1.b / 255.0) * (c2.b/255.0)
-
-    r_component = int(r_component * 255)
-    g_component = int(g_component * 255)
-    b_component = int(b_component * 255)
+    r_component = c1.r * c2.r
+    g_component = c1.g * c2.g
+    b_component = c1.b * c2.b
     return Color(r_component, g_component, b_component)
 
 def color_add(c1,c2):
     r = c1.r + c2.r
-    r = max(0, min(255, r))
+    r = max(0, min(1, r))
 
     g = c1.g + c2.g
-    g = max(0, min(255, g))
+    g = max(0, min(1, g))
     
     b = c1.b + c2.b
-    b = max(0, min(255, b))
+    b = max(0, min(1, b))
     return Color(r,g,b)

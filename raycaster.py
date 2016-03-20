@@ -12,18 +12,20 @@ DIMENSIONS = (250,250)
 
 SHAPE_LOC = Vector(DIMENSIONS[0]/2, DIMENSIONS[1]/2, 0)
 CAMERA_LOC = Vector(DIMENSIONS[0]/2, DIMENSIONS[1]/2, -5)
-LIGHT_DIR = Vector(3,0.3,-5).to_unit()
-LIGHT_COLOR = Color(255,255,255)
-BG_COLOR = Color(128,67,55)
+LIGHT_DIR = Vector(-1,1,-1).to_unit()
+
+LIGHT_COLOR = Color(1,1,1)
+BG_COLOR = Color(0.9,0.9,0.9)
 
 # Shape Specific
 SPHERE_RAD = 4.995
-SPHERE_COLOR = Color(0,100,255)
+SPHERE_COLOR = Color(0,0.6,1)
 sphere_object = Sphere(SHAPE_LOC, SPHERE_RAD, SPHERE_COLOR)
 
 SHAPE = "SPHERE"
 
-ambient_light = Light(LIGHT_DIR, LIGHT_COLOR)
+light = Light(LIGHT_DIR, LIGHT_COLOR)
+ambient_light_color = Color(0.2,0.2,0.2)
 ################################################################################
 
 def get_position(ray, distance):
@@ -57,13 +59,12 @@ def detect_collision_sphere(ray, sphere):
     if D < 0.00001:
         return None
     else:
-        #closer = -B - D**0.5
-        further = -B - D**0.5
-        t = further
+        t = -B - D**0.5
         if t <=0:
             return None
         else:
             surface_normal = get_normal(ray, t, sphere)
+            surface_normal.direction = surface_normal.direction.to_unit()
             return Hit(sphere.color, surface_normal)
 
 def throw_ray(x,y):
@@ -83,10 +84,9 @@ def check_shadow(hit_object):
     """
     # pitfall: "self-shadowing" where we register intersection on the position.
     # so we nudge the position toward the light vector.
-    to_the_light = ambient_light.direction.scalar_mult(-1)
-    nudge = to_the_light.scalar_mult(0.001)
+    nudge = light.direction.scalar_mult(0.0001)
     lifted_origin = vector_add(hit_object.normal.origin, nudge)
-    outgoing_ray = Ray(lifted_origin, to_the_light)
+    outgoing_ray = Ray(lifted_origin, light.direction)
     in_shadow = detect_collision_sphere(outgoing_ray, sphere_object)
     if in_shadow == None:
         return False
@@ -98,17 +98,15 @@ def lighting(in_shadow, hit_object):
     determines the overall lighting (and thus color) at a given hit.
     """
     if in_shadow:
-        modulated_light = color_modulate(hit_object.color, ambient_light.color)
-        print "here"
-        return hit_object.color.to_tuple()
+        modulated_light = color_modulate(hit_object.color, ambient_light_color)
     else:
-        scaling_factor = max(0, vector_dot(hit_object.normal.direction.to_unit(), ambient_light.direction.to_unit()))
-        diffuse_light = ambient_light.color.scale(scaling_factor)
-        sum_light_colors = color_add(ambient_light.color, diffuse_light)
+        scaling_factor = max(0, vector_dot(hit_object.normal.direction, light.direction))
+        diffuse_light = light.color.scale(scaling_factor)
+        sum_light_colors = color_add(ambient_light_color, diffuse_light)
         modulated_light = color_modulate(hit_object.color, sum_light_colors)
-    return modulated_light.to_tuple()
+    return modulated_light.to_color_tuple()
 
-im = Image.new("RGB", DIMENSIONS, BG_COLOR.to_tuple())
+im = Image.new("RGB", DIMENSIONS, BG_COLOR.to_color_tuple())
 
 for x in range(DIMENSIONS[0]):
     for y in range(DIMENSIONS[1]):
