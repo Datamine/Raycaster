@@ -1,5 +1,11 @@
 from PIL import Image
 from time import time
+import math
+
+# This file contains classes for objects used in raycaster.py,
+# and helper functions for dealing with those objects.
+# All code related to actually determining locations of intersections
+# and plotting points is in raycaster.py.
 
 class Vector():
     """
@@ -108,6 +114,38 @@ class Cube():
         self.rot_x = rot_x
         self.rot_y = rot_y
         self.distance = distance
+    def vertices(self):
+        """
+        returns the eight vertices characterizing a cube.
+        We first locate all the eight vertices, then we use trigonometry
+        to figure out by how much to change their positions.
+        """
+        radians_x = math.radians(rot_x)
+        radians_y = math.radians(rot_y)
+        # pythagorean theorem, noting all edge lengths are equal
+        half_edge_length = distance / 2**0.5
+        vertex_distances = [(half_edge_length, half_edge_length, half_edge_length),
+                            (half_edge_length, half_edge_length, -half_edge_length),
+                            (half_edge_length, -half_edge_length, half_edge_length),
+                            (half_edge_length, -half_edge_length, -half_edge_length),
+                            (-half_edge_length, half_edge_length, half_edge_length),
+                            (-half_edge_length, half_edge_length, -half_edge_length),
+                            (-half_edge_length, -half_edge_length, half_edge_length),
+                            (-half_edge_length, -half_edge_length, -half_edge_length)]
+        rotated_vertex_distances = []
+        for (x,y,z) in vertex_distances:
+            # rotate around the x-axis first
+            x1 = x
+            y1 = y * math.cos(radians_x) - z * math.sin(radians_x)
+            z1 = y * math.sin(radians_x) + z * math.cos(radians_x)
+            # now rotate around the y-axis. Note: we update our coords to (x,y1,z1) first.
+            z2 = z1 * math.cos(radians_y) - x1 * math.sin(radians_y)
+            x2 = z1 * math.sin(radians_y) + x2 * math.cos(radians_y)
+            y2 = y1
+            rotated_vertex_distances.append((x2))
+
+        eight_vertices = map(lambda x: add_vector(self.center, x), vertex_distances)
+        distance * 
 
 class Light():
     """
