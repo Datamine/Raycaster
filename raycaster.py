@@ -1,121 +1,78 @@
-# John Loeber | Python 2.7.10 | March 10, 2016
+from raycaster_plumbing import *
 
-from PIL import Image
-from raycaster_classes import *
-import time
+CAMERA_Z = -5
+IMG_W = 180
+IMG_H = 180
 
-# Configuration ################################################################
+BGCOLOR = Rgb(0.3, 0.6, 1.0)
+#BGCOLOR = Rgb(36.0/255, 36.0/255, 140.0/255)
+AMBIENT_LIGHT_COLOR = Rgb(0.2, 0.2, 0.2)
 
-# (Width, Height) of output image
-# (0,0) in the top left corner. (w,0) in the top right. (w,h) in the bottom right.
-DIMENSIONS = (250,250)
+SCENE_LIGHT = Light(Vector(-1,1,-1).to_unit(), Rgb(1,1,1))
 
-SHAPE_LOC = Vector(DIMENSIONS[0]/2, DIMENSIONS[1]/2, 0)
-CAMERA_LOC = Vector(DIMENSIONS[0]/2, DIMENSIONS[1]/2, -5)
-LIGHT_DIR = Vector(-1,1,-1).to_unit()
+SHAPE = "cube"
+SPHERE = Sphere(Vector(0,0,3), 1, Rgb(0.8, 0.8, 0.8))
+#SPHERE = Sphere(Vector(1,1,3), 0.5, Rgb(1, 11.0/17, 0))
 
-LIGHT_COLOR = Color(1,1,1)
-BG_COLOR = Color(0.9,0.9,0.9)
-
-# Shape Specific
-SPHERE_RAD = 4.995
-SPHERE_COLOR = Color(0,0.6,1)
-sphere_object = Sphere(SHAPE_LOC, SPHERE_RAD, SPHERE_COLOR)
-
-SHAPE = "SPHERE"
-
-light = Light(LIGHT_DIR, LIGHT_COLOR)
-ambient_light_color = Color(0.2,0.2,0.2)
-################################################################################
-
-def get_position(ray, distance):
-    """
-    taking a ray object, determine the position it reaches
-    after covering the distance.
-    """
-    direction_scaled = ray.direction.scalar_mult(distance)
-    position = vector_add(direction_scaled, ray.origin)
-    return position
-
-def get_normal(ray, distance, sphere):
-    """
-    get the surface normal to sphere, given ray and distance.
-    """
-    position = get_position(ray, distance)
-    direction = vector_sub(position, sphere.center).to_unit()
-    return Ray(position, direction)
-
-def detect_collision_sphere(ray, sphere):
-    """
-    check whether a ray intersects with the sphere.
-    return None if there is no collision, otherwise Hit() object.
-    test for intersection: https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
-    """
-    A = vector_sub(ray.origin, sphere.center)
+def intersect_sphere(ray):
+    A = vector_sub(ray.origin, SPHERE.center)
     B = vector_dot(A, ray.direction)
-    C = vector_dot(A,A) - sphere.radius**2
-    D = B**2 - C
-    # creating some leeway for floating-point error
-    if D < 0.00001:
+    C = vector_dot(A,A) - SPHERE.radius**2
+    # max with zero because for t, we can't raise negative D to fractional power.
+    D = max(0, B**2 - C)
+    t = (-B) - D**0.5
+    if (D > 0) and (t > 0):
+        normal = vector_sub(ray.position(t), SPHERE.center).to_unit()
+        return Hit(t, SPHERE.color, normal)
+    else:
         return None
+
+def intersect_cube(ray):
+    return
+
+def intersect(ray):
+    if SHAPE=="sphere":
+        return intersect_sphere(ray)
     else:
-        t = -B - D**0.5
-        if t <=0:
-            return None
-        else:
-            surface_normal = get_normal(ray, t, sphere)
-            surface_normal.direction = surface_normal.direction.to_unit()
-            return Hit(sphere.color, surface_normal)
+        return intersect_cube(ray)
 
-def throw_ray(x,y):
-    """
-    throw a ray from the camera into the view plane. test for sphere intersection.
-    assuming that the z-coord of the view plane is 0.
-    """
-    origin = CAMERA_LOC
-    direction = vector_sub(Vector(x,y,0),origin).to_unit()
-    ray = Ray(origin, direction)
-    return detect_collision_sphere(ray, sphere_object)
+def shadowed(shape_surface_vector):
+    nudge = vector_add(shape_surface_vector, SCENE_LIGHT.direction.scale(0.0001))
+    to_the_light = Ray(nudge, SCENE_LIGHT.direction)
+    return intersect(to_the_light) != None
 
-def check_shadow(hit_object):
-    """
-    Bool: whether a point on the sphere is in shadow or not.
-    (Check whether light intersects the object before the point.)
-    """
-    # pitfall: "self-shadowing" where we register intersection on the position.
-    # so we nudge the position toward the light vector.
-    nudge = light.direction.scalar_mult(0.0001)
-    lifted_origin = vector_add(hit_object.normal.origin, nudge)
-    outgoing_ray = Ray(lifted_origin, light.direction)
-    in_shadow = detect_collision_sphere(outgoing_ray, sphere_object)
-    if in_shadow == None:
-        return False
+def lighting_sphere(ray, hit):
+    if shadowed(ray.position(hit.dist)):
+        return Rgb_modulate(hit.surf_color, AMBIENT_LIGHT_COLOR)
     else:
-        return True
+        scale = max(0, vector_dot(hit.surf_normal, SCENE_LIGHT.direction))
+        product = Rgb_add(SCENE_LIGHT.color.scale(scale), AMBIENT_LIGHT_COLOR)
+        return Rgb_modulate(hit.surf_color, product)
 
-def lighting(in_shadow, hit_object):
-    """
-    determines the overall lighting (and thus color) at a given hit.
-    """
-    if in_shadow:
-        modulated_light = color_modulate(hit_object.color, ambient_light_color)
+def lighting_cube(ray, hit, shape):
+    return
+
+def lighting(ray, hit):
+    if SHAPE=="sphere":
+        return lighting_sphere(ray, hit)
     else:
-        scaling_factor = max(0, vector_dot(hit_object.normal.direction, light.direction))
-        diffuse_light = light.color.scale(scaling_factor)
-        sum_light_colors = color_add(ambient_light_color, diffuse_light)
-        modulated_light = color_modulate(hit_object.color, sum_light_colors)
-    return modulated_light.to_color_tuple()
+        return lighting_cube(ray, hit)
 
-im = Image.new("RGB", DIMENSIONS, BG_COLOR.to_color_tuple())
+im = Image.new("RGB", (IMG_W, IMG_H), BGCOLOR.to_color())
 
-for x in range(DIMENSIONS[0]):
-    for y in range(DIMENSIONS[1]):
-        hit = throw_ray(x,y)
+for x in range(IMG_W):
+    for y in range(IMG_H):
+        position = Posn(x,y)
+        logical_position = logical_loc(position, IMG_W, IMG_H)
+
+        ray_origin = origin = Vector(0,0,CAMERA_Z)
+        ray_vector = vector_sub(logical_position, ray_origin).to_unit()
+        cast_ray = Ray(ray_origin, ray_vector)
+        
+        hit = intersect(cast_ray)
         if hit != None:
-            in_shadow = check_shadow(hit)
-            color = lighting(in_shadow,hit)
-            im.putpixel((x,y),color)
+            color = lighting(cast_ray, hit)
+            truecolor = color.to_color()
+            im.putpixel((x,y),truecolor)
 
-# using a timestamp to give images unique identifiers, so it's easier
-# to generate lots of images in a batch
-im.save(SHAPE.lower() + str(int(time.time())) + ".png", "PNG")
+im.save("sphere" + str(int(time())) + ".png", "PNG")
