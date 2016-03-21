@@ -1,18 +1,23 @@
-from raycaster_plumbing import *
+# John Loeber | March 2016 | Python 2.7.10 | contact@johnloeber.com
+from raytracer_plumbing import *
+
+# following are configuration options for the scene.
 
 CAMERA_Z = -5
 IMG_W = 180
 IMG_H = 180
 
 BGCOLOR = Rgb(0.3, 0.6, 1.0)
-#BGCOLOR = Rgb(36.0/255, 36.0/255, 140.0/255)
 AMBIENT_LIGHT_COLOR = Rgb(0.2, 0.2, 0.2)
 
 SCENE_LIGHT = Light(Vector(-1,1,-1).to_unit(), Rgb(1,1,1))
 
+# your SHAPE is either "sphere" or "cube". Specify the shape
+# accordingly using "SPHERE =" or "CUBE =".
 SHAPE = "cube"
 SPHERE = Sphere(Vector(0,0,3), 1, Rgb(0.8, 0.8, 0.8))
 #SPHERE = Sphere(Vector(1,1,3), 0.5, Rgb(1, 11.0/17, 0))
+CUBE = Cube(Vector(0,0,3), 0, 0, 1, Rgb(0.8, 0.8, 0.8))
 
 def intersect_sphere(ray):
     A = vector_sub(ray.origin, SPHERE.center)
@@ -28,6 +33,12 @@ def intersect_sphere(ray):
         return None
 
 def intersect_cube(ray):
+    edges = CUBE.vertices()
+    t_near = float("-inf")
+    t_far = float("inf")
+    for edge in edges:
+        # check if parallel
+        if ray.direction == 
     return
 
 def intersect(ray):
@@ -49,7 +60,7 @@ def lighting_sphere(ray, hit):
         product = Rgb_add(SCENE_LIGHT.color.scale(scale), AMBIENT_LIGHT_COLOR)
         return Rgb_modulate(hit.surf_color, product)
 
-def lighting_cube(ray, hit, shape):
+def lighting_cube(ray, hit):
     return
 
 def lighting(ray, hit):

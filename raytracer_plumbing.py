@@ -1,6 +1,9 @@
+# John Loeber | March 2016 | Python 2.7.10 | contact@johnloeber.com
 from PIL import Image
 from time import time
+import itertools
 import math
+
 
 # This file contains classes for objects used in raycaster.py,
 # and helper functions for dealing with those objects.
@@ -108,17 +111,20 @@ class Cube():
         * a rotation around the x-axis: [0,90] degrees
         * a rotation around the y-axis: [0,90] degrees
         * a distance from the center to any vertex: float
+        * a surface color: Rgb(r,g,b)
     """
-    def __init__(self, center, rot_x, rot_y, distance):
+    def __init__(self, center, rot_x, rot_y, distance, color):
         self.center = center
         self.rot_x = rot_x
         self.rot_y = rot_y
         self.distance = distance
-    def vertices(self):
+        self.color = color
+    def edges(self):
         """
-        returns the eight vertices characterizing a cube.
-        We first locate all the eight vertices, then we use trigonometry
-        to figure out by how much to change their positions.
+        returns the twelve edges characterizing a cube.
+        We first locate all the eight vertices, then we use trigonometry to
+        figure out by how much to change their positions. Then we find all 28 
+        possible edges (that's a bit inelegant) and take the twelve shortest ones.
         """
         radians_x = math.radians(rot_x)
         radians_y = math.radians(rot_y)
@@ -142,10 +148,13 @@ class Cube():
             z2 = z1 * math.cos(radians_y) - x1 * math.sin(radians_y)
             x2 = z1 * math.sin(radians_y) + x2 * math.cos(radians_y)
             y2 = y1
-            rotated_vertex_distances.append((x2))
+            rotated_vertex_distances.append(Vector(x2,y2,z2))
 
         eight_vertices = map(lambda x: add_vector(self.center, x), vertex_distances)
-        distance * 
+        possible_edges = list(itertools.combinations(eight_vertices, 2))
+        distances = [(a,b):vector_sub(a,b).l2norm() for (a,b) in possible_edges]
+        twelve_smallest = sorted(distances, key = lambda x: x[1], reverse=True)[:12]
+        return twelve_smallest
 
 class Light():
     """
