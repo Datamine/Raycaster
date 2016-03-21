@@ -119,17 +119,14 @@ class Cube():
         self.rot_y = rot_y
         self.distance = distance
         self.color = color
-    def edges(self):
+    def slabs(self):
         """
-        returns the twelve edges characterizing a cube.
-        We first locate all the eight vertices, then we use trigonometry to
-        figure out by how much to change their positions. Then we find all 28 
-        possible edges (that's a bit inelegant) and take the twelve shortest ones.
+        returns the six slabs characterizing a cube.
         """
-        radians_x = math.radians(rot_x)
-        radians_y = math.radians(rot_y)
+        radians_x = math.radians(self.rot_x)
+        radians_y = math.radians(self.rot_y)
         # pythagorean theorem, noting all edge lengths are equal
-        half_edge_length = distance / 2**0.5
+        half_edge_length = self.distance / 2**0.5
         vertex_distances = [(half_edge_length, half_edge_length, half_edge_length),
                             (half_edge_length, half_edge_length, -half_edge_length),
                             (half_edge_length, -half_edge_length, half_edge_length),
@@ -146,15 +143,34 @@ class Cube():
             z1 = y * math.sin(radians_x) + z * math.cos(radians_x)
             # now rotate around the y-axis. Note: we update our coords to (x,y1,z1) first.
             z2 = z1 * math.cos(radians_y) - x1 * math.sin(radians_y)
-            x2 = z1 * math.sin(radians_y) + x2 * math.cos(radians_y)
+            x2 = z1 * math.sin(radians_y) + x1 * math.cos(radians_y)
             y2 = y1
             rotated_vertex_distances.append(Vector(x2,y2,z2))
 
-        eight_vertices = map(lambda x: add_vector(self.center, x), vertex_distances)
+        eight_vertices = map(lambda x: vector_add(x, self.center), rotated_vertex_distances)
+        """
         possible_edges = list(itertools.combinations(eight_vertices, 2))
-        distances = [(a,b):vector_sub(a,b).l2norm() for (a,b) in possible_edges]
+        distances = [((a,b),vector_sub(a,b).l2_norm()) for (a,b) in possible_edges]
         twelve_smallest = sorted(distances, key = lambda x: x[1], reverse=True)[:12]
-        return twelve_smallest
+        twelve_edges = [x[0] for x in twelve_smallest]
+        twelve_vectors = [vector_sub(a,b) if a.l2_norm() > b.l2_norm() else vector_sub(b,a) for (a,b) in twelve_edges]
+        twelve_unit_vectors = map(lambda x: x.to_unit(), twelve_vectors)
+        """
+        """
+        xy = map(lambda v: Vector(v.x,v.y,0), eight_vertices)
+        yz = map(lambda v: Vector(0,v.y,v.z), eight_vertices)
+        xz = map(lambda v: Vector(v.x,0,v.z), eight_vertices)
+        uniques = []
+        # iterate over all vectors
+        for i in eight_vertices:
+            # for any vector, compare it only to the ones that it hasn't been compared to yet
+            for u in uniques:
+                if vector_equal(i,u):
+                    break
+            else:
+                uniques.append(i)
+        """
+        return eight_vertices
 
 class Light():
     """
@@ -181,6 +197,15 @@ class Hit():
         self.dist = dist
         self.surf_color = surf_color
         self.surf_normal = surf_normal
+
+def vector_equal(v1,v2):
+    """
+    checks whether two vectors are approximately equal.
+    """
+    if  (v2.x - 0.001 <= v1.x <= v2.x + 0.001) and \
+        (v2.y - 0.001 <= v1.y <= v2.y + 0.001) and \
+        (v2.z - 0.001 <= v1.z <= v2.z + 0.001):
+        return True
         
 def vector_add(v1,v2):
     """
