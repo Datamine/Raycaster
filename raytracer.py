@@ -37,8 +37,9 @@ def intersect_cube(ray):
     t_near = float("-inf")
     t_far = float("inf")
     for edge in edges:
+        pass
         # check if parallel
-        if ray.direction == 
+        # if ray.direction == 
     return
 
 def intersect(ray):
