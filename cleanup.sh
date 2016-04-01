@@ -1,3 +1,3 @@
 #!/bin/bash
-rm sphere*
+rm *.png
 rm *.pyc

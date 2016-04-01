@@ -27,7 +27,7 @@ else{
 }
 
 double b = 1.0/dy
-if (a >= 0){
+if (b >= 0){
     ty_min = (y0 - oy) * a;
     ty_max = (y1 - oy) * a;
 }

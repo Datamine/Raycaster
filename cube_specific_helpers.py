@@ -17,9 +17,9 @@ class Cube():
         self.rot_y = rot_y
         self.distance = distance
         self.color = color
-    def slabs(self):
+    def vertices(self):
         """
-        returns the six slabs characterizing a cube.
+        returns the eight vertices characterizing the cube.
         """
         # pythagorean theorem, noting all edge lengths are equal
         half_edge_length = self.distance / 2**0.5
@@ -32,29 +32,8 @@ class Cube():
                             (-half_edge_length, -half_edge_length, half_edge_length),
                             (-half_edge_length, -half_edge_length, -half_edge_length)]
 
-        eight_vertices = map(lambda x: vector_add(x, self.center), rotated_vertex_distances)
-        """
-        possible_edges = list(itertools.combinations(eight_vertices, 2))
-        distances = [((a,b),vector_sub(a,b).l2_norm()) for (a,b) in possible_edges]
-        twelve_smallest = sorted(distances, key = lambda x: x[1], reverse=True)[:12]
-        twelve_edges = [x[0] for x in twelve_smallest]
-        twelve_vectors = [vector_sub(a,b) if a.l2_norm() > b.l2_norm() else vector_sub(b,a) for (a,b) in twelve_edges]
-        twelve_unit_vectors = map(lambda x: x.to_unit(), twelve_vectors)
-        """
-        """
-        xy = map(lambda v: Vector(v.x,v.y,0), eight_vertices)
-        yz = map(lambda v: Vector(0,v.y,v.z), eight_vertices)
-        xz = map(lambda v: Vector(v.x,0,v.z), eight_vertices)
-        uniques = []
-        # iterate over all vectors
-        for i in eight_vertices:
-            # for any vector, compare it only to the ones that it hasn't been compared to yet
-            for u in uniques:
-                if vector_equal(i,u):
-                    break
-            else:
-                uniques.append(i)
-        """
+        vertex_distances = map(lambda x: Vector(x[0], x[1], x[2]), vertex_distances)
+        eight_vertices = map(lambda x: vector_add(x, self.center), vertex_distances)
         return eight_vertices
 
 def rotate(point, x_angle, y_angle):
@@ -65,6 +44,9 @@ def rotate(point, x_angle, y_angle):
     x = point.x
     y = point.y
     z = point.z
+
+    radians_x = math.radians(x_angle)
+    radians_y = math.radians(y_angle)
 
     # rotate on the (x,y) axis
     x1 = x
