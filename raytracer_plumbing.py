@@ -38,6 +38,11 @@ class Vector():
         else:
             magnitude = self.l2_norm()
             return Vector(self.x/magnitude, self.y/magnitude, self.z/magnitude)
+    def print_vector(self):
+        """
+        print the vector. For debugging.
+        """
+        print self.x, self.y, self.z
 
 class Posn():
     """
