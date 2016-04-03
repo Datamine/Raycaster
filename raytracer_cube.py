@@ -30,6 +30,11 @@ def intersect(ray):
     # decision on my part -- need to fix
     SCENE_LIGHT = Light(new_light_dir, SCENE_LIGHT.color)
 
+    """
+    i need to actually change the ray itself, DUH
+    the camera rotation needs to be accompanied by recomputing the ray
+    """
+
     vertices = CUBE.vertices()
     # coordinates of vertices nearest to and furthest from the camera
     near = min(vertices, key = lambda x: vector_sub(x, new_camera_loc).l2_norm())
@@ -62,6 +67,7 @@ def intersect(ray):
 
     t0 = max(tx_min, ty_min, tz_min)
     t1 = min(tx_max, ty_max, tz_max)
+    print t0, t1
 
     if t0 < t1 and t1 > 0.00001:
         normal = Vector(1,1,1)
@@ -75,7 +81,7 @@ def shadowed(shape_surface_vector):
     return intersect(to_the_light) != None
 
 def lighting_cube(ray, hit):
-    return hit.color
+    return Rgb(0,0,0)
 
 im = Image.new("RGB", (IMG_W, IMG_H), BGCOLOR.to_color())
 
