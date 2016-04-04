@@ -19,28 +19,26 @@ class Cube():
         self.color = color
     def vertices(self):
         """
-        returns the eight vertices characterizing the cube.
+        returns the minimum and maximum vertices
         """
         # pythagorean theorem, noting all edge lengths are equal
         half_edge_length = self.distance / 2**0.5
+
         vertex_distances = [(half_edge_length, half_edge_length, half_edge_length),
-                            (half_edge_length, half_edge_length, -half_edge_length),
-                            (half_edge_length, -half_edge_length, half_edge_length),
-                            (half_edge_length, -half_edge_length, -half_edge_length),
-                            (-half_edge_length, half_edge_length, half_edge_length),
-                            (-half_edge_length, half_edge_length, -half_edge_length),
-                            (-half_edge_length, -half_edge_length, half_edge_length),
                             (-half_edge_length, -half_edge_length, -half_edge_length)]
-
         vertex_distances = map(lambda x: Vector(x[0], x[1], x[2]), vertex_distances)
-        eight_vertices = map(lambda x: vector_add(x, self.center), vertex_distances)
-        return eight_vertices
+        
+        vertices = map(lambda x: vector_add(x, self.center), vertex_distances)
+        return vertices[0], vertices[1]
 
-def rotate(point, x_angle, y_angle):
+def rotate(point, center, x_angle, y_angle):
     """
     x_angle, y_angle are in radians, giving the rotation of the point
-    around the origin on the (x,y) and (y,z) axes, respectively.
+    around the center on the (x,y) and (y,z) axes, respectively.
     """
+    # move the point s.t. we are using the center as the origin
+    distance_between = vector_sub(center, point)
+    point = vector_sub(Vector(0,0,0), distance_between)
     x = point.x
     y = point.y
     z = point.z
@@ -56,4 +54,6 @@ def rotate(point, x_angle, y_angle):
     z2 = z1 * math.cos(radians_y) - x1 * math.sin(radians_y)
     x2 = z1 * math.sin(radians_y) + x1 * math.cos(radians_y)
     y2 = y1
-    return Vector(x2,y2,z2)
+    # the above rotates the point around (0,0,0). Now we need to add that to the center.
+    return vector_add(center, Vector(x2,y2,z2))
+    #return Vector(x2,y2,z2)
