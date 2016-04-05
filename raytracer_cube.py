@@ -59,6 +59,9 @@ def intersect(ray):
     if ty_min > tz_max or tz_min > ty_max:
         return None
 
+    point = vector_add(ray.origin, ray.direction.scale(max(tx_min, ty_min, tz_min)))
+    localpoint = vector_sub(point, CUBE.center)
+    
     normal = Vector(1,1,1)
     return Hit(0, CUBE.color, normal)
 
