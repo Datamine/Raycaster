@@ -14,21 +14,26 @@ class Vector():
         self.x = x
         self.y = y
         self.z = z  
+    
     def l2_norm(self):
         """
         return the l2 (euclidean) norm of the vector.
         """
         return (self.x**2 + self.y**2 + self.z**2)**0.5
+    
     def scale(self,s):
         """
         multiply the vector by a scalar.
         """
         return Vector(self.x * s, self.y * s, self.z * s)
+
     def is_zero(self):
         """
         check if the vector is the zero vector.
+        (adjusted for floating point error.)
         """
         return -0.0001 <= self.l2_norm() <= 0.0001
+
     def to_unit(self):
         """
         normalize the vector, i.e. scale it to a unit vector.
@@ -38,6 +43,7 @@ class Vector():
         else:
             magnitude = self.l2_norm()
             return Vector(self.x/magnitude, self.y/magnitude, self.z/magnitude)
+
     def print_vector(self):
         """
         print the vector. For debugging.
@@ -58,16 +64,19 @@ class Rgb():
     for handling colors. note that r,g,b are all in [0,1].
     we scale them to [0,255] only to place the colored pixel.
     """
+
     def __init__(self,r,g,b):
         self.r = r
         self.g = g
         self.b = b
+    
     def to_color(self):
         """
         scales a Rgb() to an (r,g,b) tuple that the python imaging
         library can use in putpixel().
         """
         return (int(self.r * 255), int(self.g * 255), int(self.b * 255))
+    
     def scale(self, x):
         """
         multiply an Rgb() by a scalar. Capped in [0,1].
